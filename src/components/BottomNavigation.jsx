@@ -15,12 +15,18 @@ const BottomNavigation = () => {
         <Text style={styles.navText}>Inicio</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ConsultarIncidentes')}>
+      <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('CrearIncidente')}>
         <FontAwesome name="check-square" size={24} color="#4a7dfc" />
-        <Text style={styles.navText}>Incidentes</Text>
+        <Text style={styles.navText}>Crear</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Chatbot')}>
+
+        <FontAwesome name="user" size={24} color="#4a7dfc" />
+        <Text style={styles.navText}>Chatbot</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ConsultarIncidentes')}>
         <FontAwesome name="search" size={24} color="#4a7dfc" />
         <Text style={styles.navText}>Buscar</Text>
       </TouchableOpacity>
