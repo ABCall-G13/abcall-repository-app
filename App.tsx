@@ -6,70 +6,41 @@
  */
 
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator, StackNavigationProp } from '@react-navigation/stack';
+import { createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
-import { Button, StyleSheet, Text, View } from 'react-native';
-
-type RootStackParamList = {
-  Home: undefined;
-  Details: undefined;
-};
-
-// Definición de los tipos de navegación para las pantallas
-type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
-type DetailsScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Details'>;
-
-type HomeProps = {
-  navigation: HomeScreenNavigationProp;
-};
-
-type DetailsProps = {
-  navigation: DetailsScreenNavigationProp;
-};
-
-function HomeScreen({ navigation }: HomeProps) {
-  return (
-    <View style={styles.screen}>
-      <Text style={styles.title}>Home Screen</Text>
-      <Button
-        title="Go to Prueba"
-        onPress={() => navigation.navigate('Details')}
-      />
-    </View>
-  );
-}
-
-function DetailsScreen({ navigation }: DetailsProps ) {
-  return (
-    <View style={styles.screen}>
-      <Text style={styles.title}>Details Screen</Text>
-      <Button title="Go Back to Home" onPress={() => navigation.navigate('Home')} />
-    </View>
-  );
-}
+import { StyleSheet, View } from 'react-native';
+import Banner from './src/components/Banner';
+import CrearIncidente from './src/screens/CrearIncidente';
+import ConsultarIncidentes from './src/screens/ConsultarIncidentes';
+import Chatbot from './src/screens/Chatbot';
+import BottomNavigation from './src/components/BottomNavigation';
 
 const Stack = createStackNavigator();
 
 function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Details" component={DetailsScreen} />
-      </Stack.Navigator>
+      <View style={styles.container}>
+        <View style={styles.content}>
+          <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Home" component={Banner} />
+            <Stack.Screen name="CrearIncidente" component={CrearIncidente} />
+            <Stack.Screen name="ConsultarIncidentes" component={ConsultarIncidentes} />
+            <Stack.Screen name="Chatbot" component={Chatbot} />
+          </Stack.Navigator>
+        </View>
+        <BottomNavigation />
+      </View>
     </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
+  container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
+  content: {
+    flex: 1,
   },
 });
 
