@@ -1,20 +1,23 @@
-// App.js
+/**
+ * Sample React Native App
+ * https://github.com/facebook/react-native
+ *
+ * @format
+ */
 
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator} from '@react-navigation/stack';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
 import Banner from './src/components/Banner';
-import BottomNavigation from './src/components/BottomNavigation';
-
-// Importa las pantallas a las que navegas
 import CrearIncidente from './src/screens/CrearIncidente';
 import ConsultarIncidentes from './src/screens/ConsultarIncidentes';
 import Chatbot from './src/screens/Chatbot';
+import BottomNavigation from './src/components/BottomNavigation';
 
 const Stack = createStackNavigator();
 
-const App = () => {
+function App() {
   return (
     <NavigationContainer>
       <View style={styles.container}>
@@ -30,7 +33,7 @@ const App = () => {
       </View>
     </NavigationContainer>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
