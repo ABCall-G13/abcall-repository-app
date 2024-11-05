@@ -1,5 +1,3 @@
-// src/components/Banner.js
-
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -16,18 +14,18 @@ const Banner: React.FC<BannerProps> = ({ navigation }) => {
 
       <View style={styles.buttonsContainer}>
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('CrearIncidente')}>
-          <Icon name="user" size={20} color="#4a7dfc" />
+          <Icon name="user" size={110} color="#3366CC"/>
           <Text style={styles.buttonText}>Aquí podrás crear el incidente</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ConsultarIncidentes')}>
-          <Icon name="check-square" size={20} color="#4a7dfc" />
           <Text style={styles.buttonText}>Usa esta función para consultar los incidentes.</Text>
+          <Icon name="check-square" size={110} color="#3366CC"/>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Chatbot')}>
-          <Icon name="search" size={20} color="#4a7dfc" />
-          <Text style={styles.buttonText}>Interactúa con nuestro chatbot de IA generativa para resolver tus inquietudes</Text>
+          <Icon name="search" size={110} color="#3366CC"  />
+          <Text style={styles.buttonText}>Interactua con nuestro chatbot de IA generativa quien te ayudara a resolver tus inquietudes</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -43,24 +41,31 @@ const styles = StyleSheet.create({
   bannerText: {
     fontSize: 20,
     fontWeight: 'bold',
+    color: '#000',
     marginBottom: 20,
+    textAlign: 'center',
   },
   buttonsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    flexDirection: 'column',
+    alignItems: 'center',
+    width: '100%',
   },
   button: {
-    width: 100,
+    flexDirection: 'row',
     alignItems: 'center',
-    margin: 15,
+    padding: 40,
+    width: '100%',
+    marginVertical: 10,
+    borderRadius: 8,
   },
   buttonText: {
-    fontSize: 12,
+    fontSize: 15,
+    width: '50%',
     color: '#555',
-    textAlign: 'center',
-    marginTop: 8,
+    margin: 20,
+    textAlign: 'left',
   },
+
 });
 
 export default Banner;
