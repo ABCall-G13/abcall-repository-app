@@ -13,18 +13,18 @@ const Banner: React.FC<BannerProps> = ({ navigation }) => {
       <Text style={styles.bannerText}>Bienvenido a la APP de ABCall</Text>
 
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('CrearIncidente')}>
-          <Icon name="user" size={110} color="#3366CC"/>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('UserValidation')}>
+          <Icon name="exclamation-circle" size={110} color="#4a7dfc"/>
           <Text style={styles.buttonText}>Aquí podrás crear el incidente</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ConsultarIncidentes')}>
           <Text style={styles.buttonText}>Usa esta función para consultar los incidentes.</Text>
-          <Icon name="check-square" size={110} color="#3366CC"/>
+          <Icon name="search" size={110} color="#3366CC"/>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Chatbot')}>
-          <Icon name="search" size={110} color="#3366CC"  />
+          <Icon name="user" size={110} color="#3366CC"  />
           <Text style={styles.buttonText}>Interactua con nuestro chatbot de IA generativa quien te ayudara a resolver tus inquietudes</Text>
         </TouchableOpacity>
       </View>

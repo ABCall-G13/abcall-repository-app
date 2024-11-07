@@ -1,10 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from 'react-native-screens/native-stack';
 import React from 'react';
@@ -14,12 +7,14 @@ import CrearIncidente from './src/screens/CrearIncidente';
 import ConsultarIncidentes from './src/screens/ConsultarIncidentes';
 import Chatbot from './src/screens/Chatbot';
 import BottomNavigation from './src/components/BottomNavigation';
+import UserValidation from './src/screens/UserValidation';
 
 type HomeStackRoutes = {
   Home: undefined;
-  CrearIncidente: undefined;
+  CrearIncidente: { initialUserInfo: { cliente_id: string; identificacion_usuario: string } };
   ConsultarIncidentes: undefined;
   Chatbot: undefined;
+  UserValidation: undefined;
 };
 
 const Stack = createNativeStackNavigator<HomeStackRoutes>();
@@ -31,6 +26,7 @@ function App() {
         <View style={styles.content}>
           <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
             <Stack.Screen name="Home" component={Banner} />
+            <Stack.Screen name="UserValidation" component={UserValidation} />
             <Stack.Screen name="CrearIncidente" component={CrearIncidente} />
             <Stack.Screen name="ConsultarIncidentes" component={ConsultarIncidentes} />
             <Stack.Screen name="Chatbot" component={Chatbot} />
