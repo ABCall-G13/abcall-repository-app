@@ -34,7 +34,7 @@ const UserValidation = ({ navigation }: { navigation: any }) => {
       if (response.data && Object.keys(response.data).length > 0) {
         const userData = {
           cliente_id: selectedClient.id,
-          identificacion_usuario: response.data.id,
+          identificacion_usuario: response.data.documento,
         };
 
         // Navegar a CrearIncidente y pasar el id del cliente

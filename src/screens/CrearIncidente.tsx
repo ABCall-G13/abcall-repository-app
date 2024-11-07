@@ -50,7 +50,7 @@ const CrearIncidente: React.FC<CrearIncidenteProps> = ({ route, navigation }) =>
       description: formData.descripcion,
       categoria: formData.categoria,
       prioridad: formData.prioridad,
-      canal: 'Aplicación',
+      canal: 'aplicacion',
       cliente_id: initialUserInfo.cliente_id,
       estado: 'abierto',
       fecha_creacion: new Date().toISOString().slice(0, 10),
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   textArea: {
-    height: 200, // Altura de la caja de texto más grande
+    height: 150, // Altura de la caja de texto más grande
     borderColor: '#ddd',
     borderWidth: 1,
     borderRadius: 8,
