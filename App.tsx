@@ -6,7 +6,7 @@
  */
 
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator} from '@react-navigation/stack';
+import { createNativeStackNavigator } from 'react-native-screens/native-stack';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Banner from './src/components/Banner';
@@ -15,7 +15,14 @@ import ConsultarIncidentes from './src/screens/ConsultarIncidentes';
 import Chatbot from './src/screens/Chatbot';
 import BottomNavigation from './src/components/BottomNavigation';
 
-const Stack = createStackNavigator();
+type HomeStackRoutes = {
+  Home: undefined;
+  CrearIncidente: undefined;
+  ConsultarIncidentes: undefined;
+  Chatbot: undefined;
+};
+
+const Stack = createNativeStackNavigator<HomeStackRoutes>();
 
 function App() {
   return (
