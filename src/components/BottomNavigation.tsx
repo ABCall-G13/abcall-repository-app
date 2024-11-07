@@ -14,7 +14,7 @@ const BottomNavigation = () => {
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('UserValidation' as never)}>
-        <Icon name="check-square" size={20} color="#4a7dfc" />
+        <Icon name="exclamation-circle" size={20} color="#4a7dfc" />
         <Text style={styles.navText}>Crear</Text>
       </TouchableOpacity>
 
@@ -24,7 +24,7 @@ const BottomNavigation = () => {
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ConsultarIncidentes' as never)}>
-      <Icon name="exclamation-circle" size={20} color="#4a7dfc" />
+      <Icon name="search" size={20} color="#4a7dfc" />
         <Text style={styles.navText}>Incidentes</Text>
       </TouchableOpacity>
 
