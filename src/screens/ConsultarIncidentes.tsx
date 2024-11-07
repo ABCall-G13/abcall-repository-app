@@ -6,40 +6,52 @@ interface Incident {
   id: string;
   incidentId: string;
   description: string;
-  category: string;
-  priority: string;
-  client: string;
-  openingDate: string;
-  closingDate: string;
-  solution: string;
+  categoria: string;
+  prioridad: string;
+  cliente_id: number;
+  fecha_creacion: Date;
+  fecha_cierre: Date;
+  solucion: string;
+  identificacion_usuario: string;
+  radicado: string;
 }
 
 export default function IncidentDetailScreen() {
   const [incidentId, setIncidentId] = useState('');
   const [incident, setIncident] = useState<Incident | null>(null);
+  const [clientName, setClientName] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSearch = () => {
-    // Simulación de la consulta del incidente (puedes reemplazarlo con una llamada a la API)
-    if (incidentId === 'A012M23415') {
-      setIncident({
-        id: '12345',
-        incidentId: 'A012M23415',
-        description: 'El usuario reporta que no puede iniciar sesión en el sistema. Al intentar ingresar sus credenciales, recibe un mensaje de error indicando que el nombre de usuario o la contraseña no son válidos.',
-        category: 'Acceso',
-        priority: 'Alta',
-        client: 'Movistar Colombia',
-        openingDate: '2024-09-12 8:30 am',
-        closingDate: '2024-09-12 10:30 am',
-        solution: 'Verificar credenciales del usuario: Solicita al usuario que revise cuidadosamente su nombre de usuario y contraseña para asegurarse de que están ingresados correctamente. Asegúrate de que el bloqueo de mayúsculas (Caps Lock) no esté activado. Restablecimiento de contraseña: Si el usuario no recuerda su contraseña o sigue recibiendo un mensaje de error, indícale que use la opción "¿Olvidaste tu contraseña?". Esto permitirá enviar un enlace de restablecimiento al correo electrónico registrado.',
-      });
-      setErrorMessage(null); // Limpiar mensaje de error
-    } else {
+  const handleSearch = async () => {
+    try {
+      // Llamada al endpoint de incidentes
+      const incidentResponse = await fetch(`https://api-ddyhix7p4q-uc.a.run.app/incidente/radicado/${incidentId}`);
+      if (incidentResponse.ok) {
+        const incidentData: Incident = await incidentResponse.json();
+        setIncident(incidentData);
+        setErrorMessage(null);
+
+        // Llamada al endpoint de clientes para obtener el nombre del cliente
+        const clientsResponse = await fetch(`https://api-ddyhix7p4q-uc.a.run.app/clientes`);
+        if (clientsResponse.ok) {
+          const clientsData = await clientsResponse.json();
+          const client = clientsData.find((c: { id: number }) => c.id === incidentData.cliente_id);
+          setClientName(client ? client.nombre : 'Cliente no encontrado');
+        } else {
+          setClientName('Error al cargar el cliente');
+        }
+      } else {
+        setIncident(null);
+        setClientName(null);
+        setErrorMessage('Incidente no encontrado. Por favor, verifique el ID ingresado.');
+      }
+    } catch (error) {
+      console.error(error);
       setIncident(null);
-      setErrorMessage('Incidente no encontrado. Por favor, verifique el ID ingresado.');
+      setClientName(null);
+      setErrorMessage('Error al consultar el incidente. Intente nuevamente.');
     }
 
-    // Limpiar el campo de entrada después de la búsqueda
     setIncidentId('');
   };
 
@@ -70,7 +82,7 @@ export default function IncidentDetailScreen() {
       {incident && (
         <View style={styles.incidentContainer}>
           <View style={styles.card}>
-            <Text style={styles.label}>ID: {incident.id}</Text>
+            <Text style={styles.label}>ID: {incident.radicado}</Text>
             <Text style={styles.description}>{incident.description}</Text>
           </View>
 
@@ -78,40 +90,44 @@ export default function IncidentDetailScreen() {
             <View style={styles.row}>
               <View style={styles.categoryContainer}>
                 <Text style={styles.label}>Categoría: </Text>
-                <Text style={styles.value}>{incident.category}</Text>
+                <Text style={styles.value}>
+                  {incident.categoria ? incident.categoria.charAt(0).toUpperCase() + incident.categoria.slice(1) : 'Sin categoría'}
+                </Text>
               </View>
               <View style={styles.priorityContainer}>
                 <Text style={styles.label}>Prioridad: </Text>
                 <Text
                   style={[
                     styles.priority,
-                    incident.priority === 'Alta' ? styles.priorityHigh : styles.priorityLow,
+                    incident.prioridad === 'alta' ? styles.priorityHigh : styles.priorityLow,
                   ]}
                 >
-                  {incident.priority}
+                  {incident.prioridad ? incident.prioridad.charAt(0).toUpperCase() + incident.prioridad.slice(1) : 'Sin prioridad'}
                 </Text>
               </View>
             </View>
 
             <View style={styles.detailRow}>
               <Text style={styles.label}>Cliente:</Text>
-              <Text style={styles.value}>{incident.client}</Text>
+              <Text style={styles.value}>{clientName || 'Cargando...'}</Text>
             </View>
 
             <View style={styles.detailRow}>
               <Text style={styles.label}>Fecha de apertura:</Text>
-              <Text style={styles.value}>{incident.openingDate}</Text>
+              <Text style={styles.value}>  {incident.fecha_creacion ? new Date(incident.fecha_creacion).toLocaleDateString('en-CA') : '--'}</Text>
             </View>
 
             <View style={styles.detailRow}>
               <Text style={styles.label}>Fecha de cierre:</Text>
-              <Text style={styles.value}>{incident.closingDate}</Text>
+              <Text style={styles.value}>{incident.fecha_cierre ? new Date(incident.fecha_cierre).toLocaleDateString('en-CA') : '--'}</Text>
             </View>
           </View>
 
           <Text style={styles.solutionTitle}>Solución</Text>
           <View style={styles.solutionCard}>
-            <Text style={styles.solutionText}>{incident.solution}</Text>
+            <Text style={styles.solutionText}>
+              {incident.solucion ? incident.solucion : 'Aún no se ha dado solución a este incidente'}
+            </Text>
           </View>
         </View>
       )}
