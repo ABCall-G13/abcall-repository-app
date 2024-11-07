@@ -1,5 +1,5 @@
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from 'react-native-screens/native-stack';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Banner from './src/components/Banner';
@@ -8,9 +8,16 @@ import ConsultarIncidentes from './src/screens/ConsultarIncidentes';
 import Chatbot from './src/screens/Chatbot';
 import BottomNavigation from './src/components/BottomNavigation';
 import UserValidation from './src/screens/UserValidation';
-import { RootStackParamList } from './src/types/navigation';
 
-const Stack = createStackNavigator<RootStackParamList>();
+type HomeStackRoutes = {
+  Home: undefined;
+  CrearIncidente: { initialUserInfo: { cliente_id: string; identificacion_usuario: string } };
+  ConsultarIncidentes: undefined;
+  Chatbot: undefined;
+  UserValidation: undefined;
+};
+
+const Stack = createNativeStackNavigator<HomeStackRoutes>();
 
 function App() {
   return (

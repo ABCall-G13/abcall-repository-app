@@ -13,7 +13,6 @@ const BottomNavigation = () => {
         <Text style={styles.navText}>Inicio</Text>
       </TouchableOpacity>
 
-      {/* Cambia la navegación para que pase primero por UserValidation */}
       <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('UserValidation' as never)}>
         <Icon name="check-square" size={20} color="#4a7dfc" />
         <Text style={styles.navText}>Crear</Text>
@@ -25,9 +24,10 @@ const BottomNavigation = () => {
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ConsultarIncidentes' as never)}>
-        <Icon name="search" size={20} color="#4a7dfc" />
-        <Text style={styles.navText}>Buscar</Text>
+      <Icon name="exclamation-circle" size={20} color="#4a7dfc" />
+        <Text style={styles.navText}>Incidentes</Text>
       </TouchableOpacity>
+
     </View>
   );
 };
