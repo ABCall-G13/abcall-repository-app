@@ -1,5 +1,3 @@
-// src/components/BottomNavigation.js
-
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -15,13 +13,19 @@ const BottomNavigation = () => {
         <Text style={styles.navText}>Inicio</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ConsultarIncidentes' as never)}>
-      <Icon name="exclamation-circle" size={20} color="#4a7dfc" />
-        <Text style={styles.navText}>Incidentes</Text>
+      {/* Cambia la navegación para que pase primero por UserValidation */}
+      <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('UserValidation' as never)}>
+        <Icon name="check-square" size={20} color="#4a7dfc" />
+        <Text style={styles.navText}>Crear</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Chatbot' as never)}>
-      <Icon name="search" size={20} color="#4a7dfc" />
+        <Icon name="user" size={20} color="#4a7dfc" />
+        <Text style={styles.navText}>Chatbot</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('ConsultarIncidentes' as never)}>
+        <Icon name="search" size={20} color="#4a7dfc" />
         <Text style={styles.navText}>Buscar</Text>
       </TouchableOpacity>
     </View>
