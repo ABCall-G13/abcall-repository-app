@@ -68,7 +68,8 @@ export default function IncidentDetailScreen() {
             onChangeText={setIncidentId}
           />
           <TouchableOpacity onPress={handleSearch}>
-            <Icon name="arrow-right" size={20} color="#74777F" style={styles.searchArrow} />
+            <Icon name="arrow-right" size={20} color="#74777F"
+            style={styles.searchArrow} testID="search_icon"/>
           </TouchableOpacity>
         </View>
       </View>

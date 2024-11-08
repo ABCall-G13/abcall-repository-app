@@ -5,7 +5,7 @@ import { View, Text, StyleSheet } from 'react-native';
 
 const Chatbot = () => {
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="container">
       <Text style={styles.text}>Chatbot</Text>
     </View>
   );
