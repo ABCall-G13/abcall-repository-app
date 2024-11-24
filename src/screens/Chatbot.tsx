@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -26,7 +26,7 @@ interface Message {
   timestamp: string;
 }
 
-const Chatbot = () => {
+const Chatbot = ({ navigation }: { navigation: any }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: 'bot',
@@ -36,9 +36,9 @@ const Chatbot = () => {
           Por favor, ingresa tu tipo de documento.{"\n"}
           Las opciones son:{"\n"}
           <Text style={styles.boldText}>- CC:</Text> Cédula de ciudadanía{"\n"}
-          <Text style={{ fontWeight: 'bold' }}>- PP:</Text> Pasaporte{"\n"}
-          <Text style={{ fontWeight: 'bold' }}>- CE:</Text> Cédula de extranjería{"\n"}
-          <Text style={{ fontWeight: 'bold' }}>- NIT:</Text> Número de Identificación Tributaria
+          <Text style={styles.boldText}>- PP:</Text> Pasaporte{"\n"}
+          <Text style={styles.boldText}>- CE:</Text> Cédula de extranjería{"\n"}
+          <Text style={styles.boldText}>- NIT:</Text> Número de Identificación Tributaria
         </Text>
       ),
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -50,14 +50,46 @@ const Chatbot = () => {
   const [docNumber, setDocNumber] = useState('');
   const [selectedClient, setSelectedClient] = useState<Cliente | null>(null);
   const [isAskingProblem, setIsAskingProblem] = useState(false);
+  const [isRetryOrExit, setIsRetryOrExit] = useState(false);
 
-  // Obtener la lista de clientes al cargar el componente
+  const flatListRef = useRef<FlatList>(null);
+
   useEffect(() => {
     axiosInstance
       .get('/clientes')
       .then((response) => setClientes(response.data))
       .catch((error) => console.error('Error al obtener los clientes:', error));
   }, []);
+
+  useEffect(() => {
+    flatListRef.current?.scrollToEnd({ animated: true });
+  }, [messages]);
+
+  const resetBot = () => {
+    setMessages([
+      {
+        sender: 'bot',
+        text: (
+          <Text>
+            ¡Hola! Soy tu asistente virtual.{"\n"}
+            Por favor, ingresa tu tipo de documento.{"\n"}
+            Las opciones son:{"\n"}
+            <Text style={styles.boldText}>- CC:</Text> Cédula de ciudadanía{"\n"}
+            <Text style={styles.boldText}>- PP:</Text> Pasaporte{"\n"}
+            <Text style={styles.boldText}>- CE:</Text> Cédula de extranjería{"\n"}
+            <Text style={styles.boldText}>- NIT:</Text> Número de Identificación Tributaria
+          </Text>
+        ),
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      },
+    ]);
+    setDocType('');
+    setDocNumber('');
+    setSelectedClient(null);
+    setUserInput('');
+    setIsAskingProblem(false);
+    setIsRetryOrExit(false);
+  };
 
   const handleSendMessage = async () => {
     if (userInput.trim() === '') {
@@ -69,55 +101,37 @@ const Chatbot = () => {
       { sender: 'user', text: userInput, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
     ];
     setMessages(newMessages);
+    const userResponse = userInput.trim().toLowerCase();
     setUserInput('');
 
-    if (isAskingProblem) {
-      // Buscar soluciones al problema en el endpoint
-      try {
-        const response = await axiosInstance.post('/search-issues', { query: userInput });
-        const solutions = response.data || [];
-
-        if (solutions.length > 0) {
-          const solutionsText = solutions
-            .slice(0, 3)
-            .map((solution: any, index: number) => `${index + 1}. ${solution.solucion}`)
-            .join('\n');
-
-          setMessages([
-            ...newMessages,
-            {
-              sender: 'bot',
-              text: `Estas son algunas posibles soluciones:\n${solutionsText}`,
-              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            },
-          ]);
-        } else {
-          setMessages([
-            ...newMessages,
-            {
-              sender: 'bot',
-              text: 'No se encontraron soluciones para tu problema. Por favor, contacta a soporte.',
-              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            },
-          ]);
-        }
-      } catch (error) {
-        console.error('Error buscando soluciones:', error);
+    if (isRetryOrExit) {
+      if (userResponse === '1') {
+        resetBot();
+        return;
+      } else if (userResponse === '2') {
+        navigation.navigate('Home');
+        return;
+      } else {
         setMessages([
           ...newMessages,
           {
             sender: 'bot',
-            text: 'Hubo un error al buscar soluciones. Inténtalo más tarde.',
+            text: 'Opción no válida. Por favor, escribe "1" para volver a intentar o "2" para salir.',
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
         ]);
+        return;
       }
+    }
+
+    if (isAskingProblem) {
+      // Aquí puedes manejar el problema...
       return;
     }
 
     if (!docType) {
-      const validDocTypes = ['CC', 'PP', 'CE', 'NIT'];
-      if (!validDocTypes.includes(userInput.toUpperCase())) {
+      const validDocTypes = ['cc', 'pp', 'ce', 'nit'];
+      if (!validDocTypes.includes(userResponse)) {
         setMessages([
           ...newMessages,
           {
@@ -125,10 +139,10 @@ const Chatbot = () => {
             text: (
               <Text>
                 Tipo de documento no válido. Por favor, ingresa uno de los siguientes:{"\n"}
-                <Text style={{ fontWeight: 'bold' }}>- CC:</Text> Cédula de ciudadanía{"\n"}
-                <Text style={{ fontWeight: 'bold' }}>- PP:</Text> Pasaporte{"\n"}
-                <Text style={{ fontWeight: 'bold' }}>- CE:</Text> Cédula de extranjería{"\n"}
-                <Text style={{ fontWeight: 'bold' }}>- NIT:</Text> Número de Identificación Tributaria
+                <Text style={styles.boldText}>- CC:</Text> Cédula de ciudadanía{"\n"}
+                <Text style={styles.boldText}>- PP:</Text> Pasaporte{"\n"}
+                <Text style={styles.boldText}>- CE:</Text> Cédula de extranjería{"\n"}
+                <Text style={styles.boldText}>- NIT:</Text> Número de Identificación Tributaria
               </Text>
             ),
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -136,7 +150,7 @@ const Chatbot = () => {
         ]);
         return;
       }
-      setDocType(userInput.toUpperCase());
+      setDocType(userResponse.toUpperCase());
       setMessages([
         ...newMessages,
         { sender: 'bot', text: 'Por favor, ingresa tu número de identificación.', timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
@@ -145,7 +159,7 @@ const Chatbot = () => {
     }
 
     if (!docNumber) {
-      if (isNaN(Number(userInput))) {
+      if (isNaN(Number(userResponse))) {
         setMessages([
           ...newMessages,
           {
@@ -156,7 +170,7 @@ const Chatbot = () => {
         ]);
         return;
       }
-      setDocNumber(userInput);
+      setDocNumber(userResponse);
       setMessages([
         ...newMessages,
         {
@@ -166,7 +180,7 @@ const Chatbot = () => {
               Selecciona el cliente asociado escribiendo el número correspondiente de la lista:{"\n"}
               {clientes.map((cliente, index) => (
                 <Text key={cliente.id}>
-                  <Text style={{ fontWeight: 'bold' }}>{index + 1}:</Text> {cliente.nombre}{"\n"}
+                  <Text style={styles.boldText}>{index + 1}:</Text> {cliente.nombre}{"\n"}
                 </Text>
               ))}
             </Text>
@@ -178,7 +192,7 @@ const Chatbot = () => {
     }
 
     if (!selectedClient) {
-      const clientIndex = parseInt(userInput) - 1; // Convertir la entrada del usuario al índice
+      const clientIndex = parseInt(userResponse) - 1;
       if (isNaN(clientIndex) || clientIndex < 0 || clientIndex >= clientes.length) {
         setMessages([
           ...newMessages,
@@ -193,7 +207,6 @@ const Chatbot = () => {
       setSelectedClient(clientes[clientIndex]);
       const clienteSeleccionado = clientes[clientIndex];
 
-      // Enviar datos al endpoint de validación
       try {
         const response = await axiosInstance.get('/usuario', {
           params: {
@@ -202,38 +215,38 @@ const Chatbot = () => {
             client: clienteSeleccionado.nit,
           },
         });
-        console.log('Respuesta de validación:', response.data);
 
         if (response.data) {
-            setMessages([
+          setMessages([
             ...newMessages,
             {
               sender: 'bot',
               text: `Un gusto saludarte, ${response.data.nombre}. Por favor, describe el problema que estás presentando con ${clienteSeleccionado.nombre}.`,
               timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             },
-            ]);
-          setIsAskingProblem(true); // Cambiar estado para preguntar por el problema
+          ]);
+          setIsAskingProblem(true);
         } else {
           setMessages([
             ...newMessages,
             {
               sender: 'bot',
-              text: 'Lo siento, no se pudo autenticar para tener asistencia.',
+              text: 'Lo siento, no se pudo autenticar. Escribe "1" para volver a intentar o "2" para salir.',
               timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             },
           ]);
+          setIsRetryOrExit(true);
         }
       } catch (error) {
-        console.error('Error durante la autenticación:', error);
         setMessages([
           ...newMessages,
           {
             sender: 'bot',
-            text: 'Hubo un error al procesar la autenticación. Inténtalo nuevamente.',
+            text: 'Hubo un error al procesar la autenticación. Escribe "1" para volver a intentar o "2" para salir.',
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
         ]);
+        setIsRetryOrExit(true);
       }
       return;
     }
@@ -274,6 +287,7 @@ const Chatbot = () => {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.innerContainer}>
           <FlatList
+            ref={flatListRef}
             data={messages}
             renderItem={renderMessage}
             keyExtractor={(_, index) => index.toString()}
@@ -304,6 +318,7 @@ const Chatbot = () => {
 const styles = StyleSheet.create({
   boldText: {
     fontWeight: 'bold',
+    color: '#2F54B2',
   },
   container: {
     flex: 1,
