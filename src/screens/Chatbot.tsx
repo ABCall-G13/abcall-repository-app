@@ -35,7 +35,7 @@ const Chatbot = () => {
           ¡Hola! Soy tu asistente virtual.{"\n"}
           Por favor, ingresa tu tipo de documento.{"\n"}
           Las opciones son:{"\n"}
-          <Text style={{ fontWeight: 'bold' }}>- CC:</Text> Cédula de ciudadanía{"\n"}
+          <Text style={styles.boldText}>- CC:</Text> Cédula de ciudadanía{"\n"}
           <Text style={{ fontWeight: 'bold' }}>- PP:</Text> Pasaporte{"\n"}
           <Text style={{ fontWeight: 'bold' }}>- CE:</Text> Cédula de extranjería{"\n"}
           <Text style={{ fontWeight: 'bold' }}>- NIT:</Text> Número de Identificación Tributaria
@@ -202,16 +202,17 @@ const Chatbot = () => {
             client: clienteSeleccionado.nit,
           },
         });
+        console.log('Respuesta de validación:', response.data);
 
         if (response.data) {
-          setMessages([
+            setMessages([
             ...newMessages,
             {
               sender: 'bot',
-              text: 'Usuario autenticado correctamente. Por favor, describe el problema que estás presentando.',
+              text: `Un gusto saludarte, ${response.data.nombre}. Por favor, describe el problema que estás presentando con ${clienteSeleccionado.nombre}.`,
               timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             },
-          ]);
+            ]);
           setIsAskingProblem(true); // Cambiar estado para preguntar por el problema
         } else {
           setMessages([
@@ -301,6 +302,9 @@ const Chatbot = () => {
 };
 
 const styles = StyleSheet.create({
+  boldText: {
+    fontWeight: 'bold',
+  },
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
