@@ -32,12 +32,12 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
       sender: 'bot',
       text: (
         <Text>
-          ¡Hola! Soy tu asistente virtual.{"\n"}
-          Por favor, ingresa tu tipo de documento.{"\n"}
-          Las opciones son:{"\n"}
-          <Text style={styles.boldText}>- CC:</Text> Cédula de ciudadanía{"\n"}
-          <Text style={styles.boldText}>- PP:</Text> Pasaporte{"\n"}
-          <Text style={styles.boldText}>- CE:</Text> Cédula de extranjería{"\n"}
+          ¡Hola! Soy tu asistente virtual.{'\n'}
+          Por favor, ingresa tu tipo de documento.{'\n'}
+          Las opciones son:{'\n'}
+          <Text style={styles.boldText}>- CC:</Text> Cédula de ciudadanía{'\n'}
+          <Text style={styles.boldText}>- PP:</Text> Pasaporte{'\n'}
+          <Text style={styles.boldText}>- CE:</Text> Cédula de extranjería{'\n'}
           <Text style={styles.boldText}>- NIT:</Text> Número de Identificación Tributaria
         </Text>
       ),
@@ -71,12 +71,12 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
         sender: 'bot',
         text: (
           <Text>
-            ¡Hola! Soy tu asistente virtual.{"\n"}
-            Por favor, ingresa tu tipo de documento.{"\n"}
-            Las opciones son:{"\n"}
-            <Text style={styles.boldText}>- CC:</Text> Cédula de ciudadanía{"\n"}
-            <Text style={styles.boldText}>- PP:</Text> Pasaporte{"\n"}
-            <Text style={styles.boldText}>- CE:</Text> Cédula de extranjería{"\n"}
+            ¡Hola! Soy tu asistente virtual.{'\n'}
+            Por favor, ingresa tu tipo de documento.{'\n'}
+            Las opciones son:{'\n'}
+            <Text style={styles.boldText}>- CC:</Text> Cédula de ciudadanía{'\n'}
+            <Text style={styles.boldText}>- PP:</Text> Pasaporte{'\n'}
+            <Text style={styles.boldText}>- CE:</Text> Cédula de extranjería{'\n'}
             <Text style={styles.boldText}>- NIT:</Text> Número de Identificación Tributaria
           </Text>
         ),
@@ -125,7 +125,46 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
     }
 
     if (isAskingProblem) {
-      // Aquí puedes manejar el problema...
+      // Buscar soluciones al problema en el endpoint
+      try {
+        const response = await axiosInstance.post('/search-issues', { query: userInput });
+        const solutions = response.data || [];
+
+        if (solutions.length > 0) {
+          const solutionsText = solutions
+            .slice(0, 2)
+            .map((solution: any, index: number) => `${index + 1}. ${solution.solucion}`)
+            .join('\n');
+
+          setMessages([
+            ...newMessages,
+            {
+              sender: 'bot',
+              text: `Estas son algunas posibles soluciones:\n${solutionsText}`,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
+          ]);
+        } else {
+          setMessages([
+            ...newMessages,
+            {
+              sender: 'bot',
+              text: 'No se encontraron soluciones para tu problema. Por favor, contacta a soporte.',
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
+          ]);
+        }
+      } catch (error) {
+        console.error('Error buscando soluciones:', error);
+        setMessages([
+          ...newMessages,
+          {
+            sender: 'bot',
+            text: 'Hubo un error al buscar soluciones. Inténtalo más tarde.',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+      }
       return;
     }
 
@@ -138,10 +177,10 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
             sender: 'bot',
             text: (
               <Text>
-                Tipo de documento no válido. Por favor, ingresa uno de los siguientes:{"\n"}
-                <Text style={styles.boldText}>- CC:</Text> Cédula de ciudadanía{"\n"}
-                <Text style={styles.boldText}>- PP:</Text> Pasaporte{"\n"}
-                <Text style={styles.boldText}>- CE:</Text> Cédula de extranjería{"\n"}
+                Tipo de documento no válido. Por favor, ingresa uno de los siguientes:{'\n'}
+                <Text style={styles.boldText}>- CC:</Text> Cédula de ciudadanía{'\n'}
+                <Text style={styles.boldText}>- PP:</Text> Pasaporte{'\n'}
+                <Text style={styles.boldText}>- CE:</Text> Cédula de extranjería{'\n'}
                 <Text style={styles.boldText}>- NIT:</Text> Número de Identificación Tributaria
               </Text>
             ),
@@ -177,10 +216,10 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
           sender: 'bot',
           text: (
             <Text>
-              Selecciona el cliente asociado escribiendo el número correspondiente de la lista:{"\n"}
+              Selecciona el cliente asociado escribiendo el número correspondiente de la lista:{'\n'}
               {clientes.map((cliente, index) => (
                 <Text key={cliente.id}>
-                  <Text style={styles.boldText}>{index + 1}:</Text> {cliente.nombre}{"\n"}
+                  <Text style={styles.boldText}>{index + 1}:</Text> {cliente.nombre}{'\n'}
                 </Text>
               ))}
             </Text>
@@ -208,7 +247,8 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
       const clienteSeleccionado = clientes[clientIndex];
 
       try {
-        const response = await axiosInstance.get('/usuario', {
+        // Validar usuario
+        const userResponse = await axiosInstance.get('/usuario', {
           params: {
             doc_type: docType,
             doc_number: docNumber,
@@ -216,12 +256,31 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
           },
         });
 
-        if (response.data) {
+        if (!userResponse.data) {
           setMessages([
             ...newMessages,
             {
               sender: 'bot',
-              text: `Un gusto saludarte, ${response.data.nombre}. Por favor, describe el problema que estás presentando con ${clienteSeleccionado.nombre}.`,
+              text: 'No se pudo validar al usuario. Por favor, intenta nuevamente.',
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
+          ]);
+          setIsRetryOrExit(true);
+          return;
+        }
+
+        // Consultar datos del cliente
+        console.log('clienteSeleccionado', clienteSeleccionado);
+        const clienteResponse = await axiosInstance.get(`/clientes/${clienteSeleccionado.nit}`);
+        console.log('clienteResponse', clienteResponse.data);
+        const { plan } = clienteResponse.data;
+
+        if (plan === 'empresario' || plan === 'empresario_plus') {
+          setMessages([
+            ...newMessages,
+            {
+              sender: 'bot',
+              text: `Hola, ${userResponse.data.nombre}! Por favor, describe tu problema con ${clienteResponse.data.nombre}.`,
               timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             },
           ]);
@@ -231,7 +290,7 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
             ...newMessages,
             {
               sender: 'bot',
-              text: 'Lo siento, no se pudo autenticar. Escribe "1" para volver a intentar o "2" para salir.',
+              text: `El cliente ${clienteSeleccionado.nombre} no presta servicio de atención por medio de este chatbot.`,
               timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             },
           ]);
@@ -242,7 +301,11 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
           ...newMessages,
           {
             sender: 'bot',
-            text: 'Hubo un error al procesar la autenticación. Escribe "1" para volver a intentar o "2" para salir.',
+            text: (<Text>
+              Hubo un error al procesar la autenticación. {'\n'} Escribe {'\n'}
+              <Text style={styles.boldText}>1.</Text> para volver a intentar. {'\n'}
+              <Text style={styles.boldText}>2.</Text> para salir. {'\n'}
+              </Text>),
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
         ]);
