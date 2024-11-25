@@ -50,7 +50,9 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
   const [docNumber, setDocNumber] = useState('');
   const [selectedClient, setSelectedClient] = useState<Cliente | null>(null);
   const [isAskingProblem, setIsAskingProblem] = useState(false);
+  const [isRegisteringIncident, setIsRegisteringIncident] = useState(false);
   const [isRetryOrExit, setIsRetryOrExit] = useState(false);
+  const [isSolvedOrNot, setIsSolvedOrNot] = useState(false);
 
   const flatListRef = useRef<FlatList>(null);
 
@@ -123,19 +125,115 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
         return;
       }
     }
-
+    if (isSolvedOrNot) {
+      console.log('isSolvedOrNot', userResponse);
+      if (userResponse === '1') {
+        setMessages([
+          ...newMessages,
+          {
+            sender: 'bot',
+            text: <Text>¡Qué gusto haber podido ayudarte! Si tienes algún otro problema, no dudes en contactarnos. {'\n'}
+            <Text style={styles.boldText}>1.</Text> Volver a iniciar {'\n'}
+            <Text style={styles.boldText}>2.</Text> Salir {'\n'}</Text>,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+        setIsRetryOrExit(true);
+        setIsSolvedOrNot(false);
+        return;
+      } else if (userResponse === '2') {
+        setMessages([
+          ...newMessages,
+          {
+            sender: 'bot',
+            text: 'Entendido, procederemos a registrar un incidente para que soporte pueda atender tu caso.',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+          {
+            sender: 'bot',
+            text: 'Por favor, proporciona más detalles sobre tu problema para registrar el incidente.',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+        setIsSolvedOrNot(false);
+        setIsRegisteringIncident(true);
+        setIsAskingProblem(true);
+        setIsRetryOrExit(false);
+        return;
+      } else {
+        setMessages([
+          ...newMessages,
+          {
+            sender: 'bot',
+            text: 'Opción no válida. Por favor, escribe "1" para Sí o "2" para No.',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+        return;
+      }
+    }
     if (isAskingProblem) {
-      // Buscar soluciones al problema en el endpoint
+      if (isRegisteringIncident) {
+        // Lógica para registrar el incidente
+        try {
+          const searchResponse = await axiosInstance.post('/search-issues', { query: userInput });
+          const solutions = searchResponse.data || [];
+          const categoria = solutions[0]?.categoria || 'general'; // Fallback a 'general'
+          const prioridad = solutions[0]?.prioridad || 'media'; // Fallback a 'media'
+    
+          const incidentPayload = {
+            description: userInput,
+            categoria,
+            prioridad,
+            canal: 'aplicación',
+            cliente_id: selectedClient?.id,
+            estado: 'abierto',
+            fecha_creacion: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
+          };
+    
+          await axiosInstance.post('/incidente/', incidentPayload);
+    
+          // Confirmar registro al cliente
+          setMessages([
+            ...newMessages,
+            {
+              sender: 'bot',
+              text: 'El incidente ha sido registrado exitosamente. Nuestro equipo de soporte se pondrá en contacto contigo pronto.',
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
+            {
+              sender: 'bot',
+              text: '¿Hay algo más en lo que pueda ayudarte? Escribe "1" para volver a iniciar o "2" para salir.',
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
+          ]);
+          setIsRetryOrExit(true);
+          setIsRegisteringIncident(false);
+        } catch (error) {
+          console.error('Error al registrar el incidente:', error);
+          setMessages([
+            ...newMessages,
+            {
+              sender: 'bot',
+              text: 'Hubo un error al registrar el incidente. Por favor, intenta nuevamente más tarde.',
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
+          ]);
+        }
+        return;
+      }
+    
+      // Lógica existente para buscar soluciones al problema
       try {
         const response = await axiosInstance.post('/search-issues', { query: userInput });
         const solutions = response.data || [];
-
+    
         if (solutions.length > 0) {
           const solutionsText = solutions
             .slice(0, 2)
             .map((solution: any, index: number) => `${index + 1}. ${solution.solucion}`)
             .join('\n');
-
+    
           setMessages([
             ...newMessages,
             {
@@ -143,7 +241,13 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
               text: `Estas son algunas posibles soluciones:\n${solutionsText}`,
               timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             },
+            {
+              sender: 'bot',
+              text: '¿Alguna de estas opciones es útil para ti? Escribe "1" para Sí o "2" para No.',
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
           ]);
+          setIsSolvedOrNot(true);
         } else {
           setMessages([
             ...newMessages,
@@ -167,6 +271,7 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
       }
       return;
     }
+    
 
     if (!docType) {
       const validDocTypes = ['cc', 'pp', 'ce', 'nit'];
