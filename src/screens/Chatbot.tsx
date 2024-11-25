@@ -32,12 +32,12 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
       sender: 'bot',
       text: (
         <Text>
-          ¡Hola! Soy tu asistente virtual.{"\n"}
-          Por favor, ingresa tu tipo de documento.{"\n"}
-          Las opciones son:{"\n"}
-          <Text style={styles.boldText}>- CC:</Text> Cédula de ciudadanía{"\n"}
-          <Text style={styles.boldText}>- PP:</Text> Pasaporte{"\n"}
-          <Text style={styles.boldText}>- CE:</Text> Cédula de extranjería{"\n"}
+          ¡Hola! Soy tu asistente virtual.{'\n'}
+          Por favor, ingresa tu tipo de documento.{'\n'}
+          Las opciones son:{'\n'}
+          <Text style={styles.boldText}>- CC:</Text> Cédula de ciudadanía{'\n'}
+          <Text style={styles.boldText}>- PP:</Text> Pasaporte{'\n'}
+          <Text style={styles.boldText}>- CE:</Text> Cédula de extranjería{'\n'}
           <Text style={styles.boldText}>- NIT:</Text> Número de Identificación Tributaria
         </Text>
       ),
@@ -50,7 +50,9 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
   const [docNumber, setDocNumber] = useState('');
   const [selectedClient, setSelectedClient] = useState<Cliente | null>(null);
   const [isAskingProblem, setIsAskingProblem] = useState(false);
+  const [isRegisteringIncident, setIsRegisteringIncident] = useState(false);
   const [isRetryOrExit, setIsRetryOrExit] = useState(false);
+  const [isSolvedOrNot, setIsSolvedOrNot] = useState(false);
 
   const flatListRef = useRef<FlatList>(null);
 
@@ -71,12 +73,12 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
         sender: 'bot',
         text: (
           <Text>
-            ¡Hola! Soy tu asistente virtual.{"\n"}
-            Por favor, ingresa tu tipo de documento.{"\n"}
-            Las opciones son:{"\n"}
-            <Text style={styles.boldText}>- CC:</Text> Cédula de ciudadanía{"\n"}
-            <Text style={styles.boldText}>- PP:</Text> Pasaporte{"\n"}
-            <Text style={styles.boldText}>- CE:</Text> Cédula de extranjería{"\n"}
+            ¡Hola! Soy tu asistente virtual.{'\n'}
+            Por favor, ingresa tu tipo de documento.{'\n'}
+            Las opciones son:{'\n'}
+            <Text style={styles.boldText}>- CC:</Text> Cédula de ciudadanía{'\n'}
+            <Text style={styles.boldText}>- PP:</Text> Pasaporte{'\n'}
+            <Text style={styles.boldText}>- CE:</Text> Cédula de extranjería{'\n'}
             <Text style={styles.boldText}>- NIT:</Text> Número de Identificación Tributaria
           </Text>
         ),
@@ -123,11 +125,153 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
         return;
       }
     }
-
+    if (isSolvedOrNot) {
+      console.log('isSolvedOrNot', userResponse);
+      if (userResponse === '1') {
+        setMessages([
+          ...newMessages,
+          {
+            sender: 'bot',
+            text: <Text>¡Qué gusto haber podido ayudarte! Si tienes algún otro problema, no dudes en contactarnos. {'\n'}
+            <Text style={styles.boldText}>1.</Text> Volver a iniciar {'\n'}
+            <Text style={styles.boldText}>2.</Text> Salir {'\n'}</Text>,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+        setIsRetryOrExit(true);
+        setIsSolvedOrNot(false);
+        return;
+      } else if (userResponse === '2') {
+        setMessages([
+          ...newMessages,
+          {
+            sender: 'bot',
+            text: 'Entendido, procederemos a registrar un incidente para que soporte pueda atender tu caso.',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+          {
+            sender: 'bot',
+            text: 'Por favor, proporciona más detalles sobre tu problema para registrar el incidente.',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+        setIsSolvedOrNot(false);
+        setIsRegisteringIncident(true);
+        setIsAskingProblem(true);
+        setIsRetryOrExit(false);
+        return;
+      } else {
+        setMessages([
+          ...newMessages,
+          {
+            sender: 'bot',
+            text: 'Opción no válida. Por favor, escribe "1" para Sí o "2" para No.',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+        return;
+      }
+    }
     if (isAskingProblem) {
-      // Aquí puedes manejar el problema...
+      if (isRegisteringIncident) {
+        // Lógica para registrar el incidente
+        try {
+          const searchResponse = await axiosInstance.post('/search-issues', { query: userInput });
+          const solutions = searchResponse.data || [];
+          const categoria = solutions[0]?.categoria || 'general'; // Fallback a 'general'
+          const prioridad = solutions[0]?.prioridad || 'media'; // Fallback a 'media'
+    
+          const incidentPayload = {
+            description: userInput,
+            categoria,
+            prioridad,
+            canal: 'aplicación',
+            cliente_id: selectedClient?.id,
+            estado: 'abierto',
+            fecha_creacion: new Date().toISOString().split('T')[0], // Fecha actual en formato YYYY-MM-DD
+          };
+    
+          await axiosInstance.post('/incidente/', incidentPayload);
+    
+          // Confirmar registro al cliente
+          setMessages([
+            ...newMessages,
+            {
+              sender: 'bot',
+              text: 'El incidente ha sido registrado exitosamente. Nuestro equipo de soporte se pondrá en contacto contigo pronto.',
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
+            {
+              sender: 'bot',
+              text: '¿Hay algo más en lo que pueda ayudarte? Escribe "1" para volver a iniciar o "2" para salir.',
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
+          ]);
+          setIsRetryOrExit(true);
+          setIsRegisteringIncident(false);
+        } catch (error) {
+          console.error('Error al registrar el incidente:', error);
+          setMessages([
+            ...newMessages,
+            {
+              sender: 'bot',
+              text: 'Hubo un error al registrar el incidente. Por favor, intenta nuevamente más tarde.',
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
+          ]);
+        }
+        return;
+      }
+    
+      // Lógica existente para buscar soluciones al problema
+      try {
+        const response = await axiosInstance.post('/search-issues', { query: userInput });
+        const solutions = response.data || [];
+    
+        if (solutions.length > 0) {
+          const solutionsText = solutions
+            .slice(0, 2)
+            .map((solution: any, index: number) => `${index + 1}. ${solution.solucion}`)
+            .join('\n');
+    
+          setMessages([
+            ...newMessages,
+            {
+              sender: 'bot',
+              text: `Estas son algunas posibles soluciones:\n${solutionsText}`,
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
+            {
+              sender: 'bot',
+              text: '¿Alguna de estas opciones es útil para ti? Escribe "1" para Sí o "2" para No.',
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
+          ]);
+          setIsSolvedOrNot(true);
+        } else {
+          setMessages([
+            ...newMessages,
+            {
+              sender: 'bot',
+              text: 'No se encontraron soluciones para tu problema. Por favor, contacta a soporte.',
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
+          ]);
+        }
+      } catch (error) {
+        console.error('Error buscando soluciones:', error);
+        setMessages([
+          ...newMessages,
+          {
+            sender: 'bot',
+            text: 'Hubo un error al buscar soluciones. Inténtalo más tarde.',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          },
+        ]);
+      }
       return;
     }
+    
 
     if (!docType) {
       const validDocTypes = ['cc', 'pp', 'ce', 'nit'];
@@ -138,10 +282,10 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
             sender: 'bot',
             text: (
               <Text>
-                Tipo de documento no válido. Por favor, ingresa uno de los siguientes:{"\n"}
-                <Text style={styles.boldText}>- CC:</Text> Cédula de ciudadanía{"\n"}
-                <Text style={styles.boldText}>- PP:</Text> Pasaporte{"\n"}
-                <Text style={styles.boldText}>- CE:</Text> Cédula de extranjería{"\n"}
+                Tipo de documento no válido. Por favor, ingresa uno de los siguientes:{'\n'}
+                <Text style={styles.boldText}>- CC:</Text> Cédula de ciudadanía{'\n'}
+                <Text style={styles.boldText}>- PP:</Text> Pasaporte{'\n'}
+                <Text style={styles.boldText}>- CE:</Text> Cédula de extranjería{'\n'}
                 <Text style={styles.boldText}>- NIT:</Text> Número de Identificación Tributaria
               </Text>
             ),
@@ -177,10 +321,10 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
           sender: 'bot',
           text: (
             <Text>
-              Selecciona el cliente asociado escribiendo el número correspondiente de la lista:{"\n"}
+              Selecciona el cliente asociado escribiendo el número correspondiente de la lista:{'\n'}
               {clientes.map((cliente, index) => (
                 <Text key={cliente.id}>
-                  <Text style={styles.boldText}>{index + 1}:</Text> {cliente.nombre}{"\n"}
+                  <Text style={styles.boldText}>{index + 1}:</Text> {cliente.nombre}{'\n'}
                 </Text>
               ))}
             </Text>
@@ -208,7 +352,8 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
       const clienteSeleccionado = clientes[clientIndex];
 
       try {
-        const response = await axiosInstance.get('/usuario', {
+        // Validar usuario
+        const userResponse = await axiosInstance.get('/usuario', {
           params: {
             doc_type: docType,
             doc_number: docNumber,
@@ -216,12 +361,31 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
           },
         });
 
-        if (response.data) {
+        if (!userResponse.data) {
           setMessages([
             ...newMessages,
             {
               sender: 'bot',
-              text: `Un gusto saludarte, ${response.data.nombre}. Por favor, describe el problema que estás presentando con ${clienteSeleccionado.nombre}.`,
+              text: 'No se pudo validar al usuario. Por favor, intenta nuevamente.',
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            },
+          ]);
+          setIsRetryOrExit(true);
+          return;
+        }
+
+        // Consultar datos del cliente
+        console.log('clienteSeleccionado', clienteSeleccionado);
+        const clienteResponse = await axiosInstance.get(`/clientes/${clienteSeleccionado.nit}`);
+        console.log('clienteResponse', clienteResponse.data);
+        const { plan } = clienteResponse.data;
+
+        if (plan === 'empresario' || plan === 'empresario_plus') {
+          setMessages([
+            ...newMessages,
+            {
+              sender: 'bot',
+              text: `Hola, ${userResponse.data.nombre}! Por favor, describe tu problema con ${clienteResponse.data.nombre}.`,
               timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             },
           ]);
@@ -231,7 +395,7 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
             ...newMessages,
             {
               sender: 'bot',
-              text: 'Lo siento, no se pudo autenticar. Escribe "1" para volver a intentar o "2" para salir.',
+              text: `El cliente ${clienteSeleccionado.nombre} no presta servicio de atención por medio de este chatbot.`,
               timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             },
           ]);
@@ -242,7 +406,11 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
           ...newMessages,
           {
             sender: 'bot',
-            text: 'Hubo un error al procesar la autenticación. Escribe "1" para volver a intentar o "2" para salir.',
+            text: (<Text>
+              Hubo un error al procesar la autenticación. {'\n'} Escribe {'\n'}
+              <Text style={styles.boldText}>1.</Text> para volver a intentar. {'\n'}
+              <Text style={styles.boldText}>2.</Text> para salir. {'\n'}
+              </Text>),
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
         ]);
