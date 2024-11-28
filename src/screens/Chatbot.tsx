@@ -222,23 +222,24 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
         }
         return;
       }
-    
-      // Lógica existente para buscar soluciones al problema
       try {
         const response = await axiosInstance.post('/search-issues', { query: userInput });
         const solutions = response.data || [];
-    
         if (solutions.length > 0) {
           const solutionsText = solutions
             .slice(0, 2)
-            .map((solution: any, index: number) => `${index + 1}. ${solution.solucion}`)
+            .map((solution: { solucion: string }, index: number) => `${index + 1}. ${solution.solucion}`)
             .join('\n');
-    
+          const chatGptResponse = await axiosInstance.post('/generate-response', {
+            query: `Explica estas soluciones de forma detallada y útil para un cliente: \n${solutionsText}`,
+          });
+          console.log('chatGptResponse', chatGptResponse.data);
+          const improvedSolutions = chatGptResponse.data.response;
           setMessages([
             ...newMessages,
             {
               sender: 'bot',
-              text: `Estas son algunas posibles soluciones:\n${solutionsText}`,
+              text: `Estas son algunas soluciones detalladas:\n${improvedSolutions}`,
               timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             },
             {
@@ -271,7 +272,6 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
       }
       return;
     }
-    
 
     if (!docType) {
       const validDocTypes = ['cc', 'pp', 'ce', 'nit'];
