@@ -225,7 +225,6 @@ const Chatbot = ({ navigation }: { navigation: any }) => {
       try {
         const response = await axiosInstance.post('/search-issues', { query: userInput });
         const solutions = response.data || [];
-        console.log('solutions', solutions);
         if (solutions.length > 0) {
           const solutionsText = solutions
             .slice(0, 2)
